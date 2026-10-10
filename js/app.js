@@ -15,9 +15,12 @@
   let timers = [];
 
   /* ---------- shared pieces ---------- */
+  const formOf = t => t.noReg ? "" : (t.form || T.forms.register || "");
   function regBtn(t, short) {
-    return t.form
-      ? `<a class="btn solid" ${ext(t.form)}>${short ? "Register" : "Accept the Trial"} <span class="arr">↗</span></a>`
+    if (t.noReg) return `<span class="btn" aria-disabled="true">Walk in</span>`;
+    const link = formOf(t);
+    return link
+      ? `<a class="btn solid" ${ext(link)}>${short ? "Register" : "Register now"} <span class="arr">↗</span></a>`
       : `<span class="btn" aria-disabled="true" title="Registration form opens soon">${short ? "Opens soon" : "Registration opens soon"}</span>`;
   }
   function card(t) {
@@ -82,6 +85,7 @@
       <img src="assets/logo-white.webp" alt="Technovation '26">
       <nav aria-label="Footer">${["realms", "trials", "chronicle", "guild", "patrons", "contact"].map(k => `<a href="#${k}">${k}</a>`).join("")}</nav>
       <small>${esc(T.fest.dept)} · ${esc(T.fest.college)}, ${esc(T.fest.place)}<br>${esc(T.fest.dates)}</small>
+      <a class="btn" ${ext(T.mapUrl)}>Get directions to MGIT <span class="arr">↗</span></a>
       <small class="legal">© 2026 Technovation · ${esc(T.fest.dept)}, ${esc(T.fest.collegeShort)}</small>
     </footer>`;
   const counter = () => `<div class="count" id="count" role="timer" aria-label="Countdown to Day 1">
@@ -111,7 +115,7 @@
         <h1 class="sr">Technovation ’26 — The Five Realms</h1>
         <img class="hero-logo" src="assets/logo-white.webp" alt="Technovation ’26 — Mechatronics">
         <p class="hero-kick" aria-hidden="true">The 2026 theme</p><p class="hero-title" aria-hidden="true">The Five Realms</p>
-        <p class="hero-meta"><span>${esc(T.fest.dates)}</span><i class="dot"></i><span>${esc(T.fest.collegeShort)} · ${esc(T.fest.place)}</span></p>
+        <p class="hero-meta"><span>${esc(T.fest.dates)}</span><i class="dot"></i><a class="hero-loc" ${ext(T.mapUrl)} title="Open in Google Maps">${esc(T.fest.collegeShort)} · ${esc(T.fest.place)} <span class="arr">↗</span></a></p>
         <div class="btn-row" style="justify-content:center;margin-top:10px">
           <a class="btn solid" href="#trials">View the trials</a><a class="btn" href="#realms">Choose your realm</a>
         </div>
@@ -126,6 +130,7 @@
       <section class="sec">${A.divider("What awaits")}
         <div class="pillars">${T.pillars.map((p, i) => `<div class="frame pillar">${A.frameDeco()}<span class="pi">${A.icon(["robowars", "workshop", "expo", "connect"][i])}</span><h3>${esc(p.k)}</h3><p>${esc(p.d)}</p></div>`).join("")}</div>
       </section>
+      ${T.forms.register ? `<section class="sec">${A.divider("Registrations open")}${regPanel()}</section>` : ""}
       <section class="sec">${A.divider("The Path")}
         <div class="frame" style="${rc("gold")}">${A.frameDeco()}${festPath()}</div>
       </section>
@@ -181,7 +186,7 @@
     <section class="realm-hero" style="${rc("gold")}">
       <p class="kicker">${T.trials.length} trials across five realms</p>
       <h1 class="realm-title" style="font-size:clamp(3rem,11vw,8rem)">The Trials</h1>
-      <p class="realm-line">Technical and non-technical events for builders, pilots and thinkers. All trials are paid events. Fees, prizes and timings will be announced soon.</p>
+      <p class="realm-line">Technical and non-technical events for builders, pilots and thinkers. Registrations are open, and one form covers every event. Timings will be announced soon.</p>
     </section>
     <div class="wrap"><section class="sec" style="padding-top:20px">
       <div class="filters" role="group" aria-label="Filter by type">${["all", "Technical", "Non-technical"].map(k => `<button class="chip" data-f="type" data-v="${k}" aria-pressed="${filter.type === k}">${k === "all" ? "All trials" : k}<span class="n"></span></button>`).join("")}</div>
@@ -205,39 +210,73 @@
     const c = $("#trial-count"); if (c) c.textContent = `Showing ${list.length} of ${T.trials.length} trials`;
   }
 
+  function regPanel() {
+    return `<div class="frame reg-panel" style="${rc("gold")}">${A.frameDeco()}
+      <div class="qr"><img src="assets/register-qr.svg" alt="QR code for the Technovation registration form" width="180" height="180"></div>
+      <div class="reg-copy"><p class="kicker">One form for every trial</p><h3>Scan to register</h3>
+        <p>Pick your events in a single Google Form. All trials are paid, and registration is confirmed once your fee is paid.</p>
+        <div class="btn-row"><a class="btn solid" ${ext(T.forms.register)}>Open the form <span class="arr">↗</span></a><a class="btn" href="#trials">See all trials</a></div></div>
+    </div>`;
+  }
+  function rulebook(t) {
+    if (t.rules === null) {
+      if (t.noReg) return "";
+      return `<div class="frame rulebook">${A.frameDeco()}<p class="kicker" style="color:var(--rc)">Rules</p><p style="color:var(--parch-dim);margin-top:10px">No rulebook for this one. The coordinators explain the format on the spot.</p></div>`;
+    }
+    const secs = t.rules || [];
+    if (!secs.length && !t.scoring) return `<div class="frame rulebook">${A.frameDeco()}<p class="kicker" style="color:var(--rc)">Rulebook</p><p style="color:var(--parch-dim);margin-top:10px">The rulebook for this trial will be published here soon.</p></div>`;
+    const table = (title, rows, total, note) => `<div class="score"><p class="score-title">${esc(title)}</p><table><tbody>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(String(v))}</td></tr>`).join("")}${total ? `<tr class="total"><td>Total</td><td>${total}</td></tr>` : ""}</tbody></table>${note ? `<p class="score-note">${esc(note)}</p>` : ""}</div>`;
+    const side = (t.scoring ? table(t.scoring.title, t.scoring.rows, t.scoring.rows.reduce((n, r) => n + r[1], 0), t.scoring.note) : "") + (t.penalties ? table("Penalties", t.penalties) : "");
+    return `<div class="frame rulebook">${A.frameDeco()}
+      <p class="kicker" style="color:var(--rc)">Rulebook</p>
+      <div class="rb-grid${side ? "" : " solo"}">
+        <div class="rb-secs">${secs.map((sec, i) => `<details class="rb-sec"${i === 0 ? " open" : ""}><summary><span class="rb-n"><b>${i + 1}</b></span>${esc(sec.h)}</summary><ul>${sec.items.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>`).join("")}</div>
+        ${side ? `<div class="rb-side">${side}</div>` : ""}
+      </div>
+      <p class="rb-foot">Organizers may update rules or timings, with an announcement. The coordinators’ decisions are final.</p>
+    </div>`;
+  }
   V.trial = id => {
     const t = TRIAL[id], r = REALM[t.realm];
     const others = trialsOf(t.realm).filter(x => x.id !== id);
     const flow = t.flow && t.flow.length
       ? `<div class="days">${t.flow.map(d => `<div><p class="day-head">${esc(d.day)}</p>${path(d.steps.map(s => ({ t: s, lit: true })))}</div>`).join("")}</div><p class="lede" style="margin-top:22px;font-size:1rem">Exact timings coming soon.</p>`
-      : path([
-        { t: "Register", p: t.form ? "Registration is open. Use the button above to sign up." : "This is a paid event. The registration form opens soon.", lit: !!t.form, sealed: !t.form, when: t.form ? "Open now" : "" },
-        { t: "The Trial", p: "Rounds and format will be revealed soon.", sealed: true, mark: "?" },
-        { t: "Results", p: "Winners announced at Technovation.", sealed: true, when: "", mark: "?" }
-      ]);
+      : t.road && t.road.length
+        ? path(t.road.map(s => ({ t: s.t, p: s.p, lit: true })))
+        : path([
+          { t: "Register", p: formOf(t) ? "Registration is open. Use the button to sign up." : "This is a paid event. The registration form opens soon.", lit: !!formOf(t), sealed: !formOf(t) },
+          { t: "The Trial", p: "Rounds and format will be revealed soon.", sealed: true, mark: "?" },
+          { t: "Results", p: "Winners announced at Technovation.", sealed: true, when: "", mark: "?" }
+        ]);
+    const coords = t.coords && t.coords.length
+      ? `<ul class="coords">${t.coords.map(c => `<li><span>${esc(c.name)}</span>${c.phone ? `<a class="phone" href="tel:${c.phone.replace(/\s/g, "")}">${esc(c.phone)}</a>` : ""}</li>`).join("")}</ul>`
+      : `<p style="color:var(--parch-dim)">Reach the convenors on the <a href="#contact" style="color:var(--rc)">contact page</a>.</p>`;
+    const facts = [["Entry fee", t.fee], ["Prize pool", t.prize], ["Team size", t.team], ["Venue", t.venue], ["Timing", t.time]].filter(f => f[1]);
     return `<div class="wrap" style="${rc(t.realm)}">
       <p class="crumbs"><a href="#trials">Trials</a><span>›</span><a href="#${r.id}">${r.name}</a><span>›</span><span>${esc(t.name)}</span></p>
       <section class="sec" style="padding-top:30px">
         <div class="trial-head">
           <div class="trial-emblem">${A.medallion(t.realm)}${A.icon(t.icon)}</div>
           <div>
-            <div class="tc-tags"><span class="tag realm">${A.glyph(r.id)}${r.name} · ${esc(r.pillar)}</span><span class="tag">${t.type}</span><span class="tag">Paid event</span></div>
+            <div class="tc-tags"><span class="tag realm">${A.glyph(r.id)}${r.name} · ${esc(r.pillar)}</span><span class="tag">${t.type}</span><span class="tag">${t.noReg ? "Walk-in" : "Paid event"}</span></div>
             <h1 class="trial-name">${esc(t.name)}</h1>
-            <p class="lede">${esc(t.desc)}</p>
+            ${t.theme ? `<p class="trial-theme"><span>Theme</span>${esc(t.theme)}</p>` : ""}
+            <p class="lede">${esc(t.theme ? t.desc.replace(/^Theme:[^.]*\.\s*/, "") : t.desc)}</p>
             <div class="btn-row" style="margin-top:20px">${regBtn(t)}<a class="btn" href="#${r.id}">Back to ${r.name}</a></div>
           </div>
         </div>
-        ${(() => {
-          const facts = [["Entry fee", t.fee], ["Prize pool", t.prize], ["Team size", t.team], ["Venue", t.venue], ["Timing", t.time]].filter(f => f[1]);
-          return facts.length
-            ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>`
-            : `<p class="facts-note">${T.fest.dates} · ${esc(T.fest.collegeShort)}, ${esc(T.fest.place)}<br><span>Fee, prize pool, team size, venue and timing will be announced here soon.</span></p>`;
-        })()}
+        ${facts.length ? `<div class="facts">${facts.map(([k, v]) => `<div class="fact"><span>${k}</span><b>${esc(v)}</b></div>`).join("")}</div>` : ""}
+        <p class="facts-map">All venues are on the MGIT campus, Gandipet. <a ${ext(T.mapUrl)}>Get directions <span class="arr">↗</span></a></p>
         <div class="trial-grid">
-          <div class="frame">${A.frameDeco()}<p class="kicker" style="color:var(--rc);margin-bottom:22px">Trial roadmap</p>${flow}</div>
-          <div class="frame">${A.frameDeco()}<p class="kicker" style="color:var(--rc);margin-bottom:14px">Rules & judging</p><p style="color:var(--parch-dim)">The rulebook for this trial will be published here soon.</p>
-            <p class="kicker" style="color:var(--rc);margin:28px 0 14px">Questions?</p><p style="color:var(--parch-dim)">Reach the convenors on the <a href="#contact" style="color:var(--rc)">contact page</a>.</p></div>
+          <div class="frame">${A.frameDeco()}<p class="kicker" style="color:var(--rc);margin-bottom:22px">${t.noReg ? "What to expect" : "Trial roadmap"}</p>${flow}</div>
+          <div class="frame side">${A.frameDeco()}
+            ${t.noReg ? `<p class="kicker" style="color:var(--rc);margin-bottom:10px">Entry</p><p style="color:var(--parch-dim)">No registration needed. Just walk in.</p>`
+              : formOf(t) ? `<p class="kicker" style="color:var(--rc);margin-bottom:14px">Register</p><div class="side-reg"><div class="qr sm"><img src="assets/register-qr.svg" alt="QR code for the registration form" width="120" height="120"></div><div><p style="color:var(--parch-dim);margin-bottom:12px">One form for every event. Scan the code or tap below.</p>${regBtn(t, true)}</div></div>`
+              : ""}
+            <p class="kicker" style="color:var(--rc);margin:28px 0 14px">${t.noReg ? "Coordinators" : "Student coordinators"}</p>${coords}
+          </div>
         </div>
+        ${rulebook(t)}
       </section>
       ${others.length ? `<section class="sec" style="padding-top:0">${A.divider(`More from ${r.name}`, "h2")}<div class="cards">${others.map(card).join("")}</div></section>` : ""}
     </div>${footer()}`;
@@ -287,7 +326,7 @@
   ];
   const TIERS = [["Diamond", "#cfefff", "Top tier, split between two sponsors: Title and Co-Title."], ["Platinum", "#cbd3dc", "Elevated cash tier with fuller visibility."], ["Gold", "#e3b84f", "Cash sponsorship, entry tier."], ["Ruby", "#e0245e", "In-kind. Runs a full workshop at no cost."], ["Emerald", "#2ecc8f", "In-kind. Provides hardware and components, and runs a discounted stall for students."]];
   V.patrons = () => {
-    const lead = T.contacts.find(c => /spons/i.test(c.role));
+    const lead = T.contacts.flat().find(c => /spons/i.test(c.role));
     return `<section class="realm-hero" style="${rc("earth")}">
       <p class="realm-sub">Sponsors</p>
       <h1 class="realm-title" style="font-size:clamp(3rem,11vw,8rem)">Patrons</h1>
@@ -308,7 +347,7 @@
       <h1 class="realm-title" style="font-size:clamp(3rem,11vw,8rem)">Contact</h1>
     </section>
     <div class="wrap" style="${rc("gold")}">
-      <section class="sec" style="padding-top:20px"><div class="people">${T.contacts.map(c => `<div class="frame person">${A.frameDeco()}<p class="role">${esc(c.role)}</p><h3>${esc(c.name)}</h3><a class="phone" href="tel:${c.phone.replace(/\s/g, "")}">${esc(c.phone)}</a></div>`).join("")}</div></section>
+      <section class="sec" style="padding-top:20px">${T.contacts.map(row => `<div class="people people-row">${row.map(c => `<div class="frame person">${A.frameDeco()}<p class="role">${esc(c.role)}</p><h3>${esc(c.name)}</h3><a class="phone" href="tel:${c.phone.replace(/\s/g, "")}">${esc(c.phone)}</a></div>`).join("")}</div>`).join("")}</section>
       <section class="sec" style="padding-top:0"><div class="frame address">${A.frameDeco()}<p class="kicker">Find us</p><p>${esc(T.address)}</p>
         <div class="btn-row" style="justify-content:center"><a class="btn solid" ${ext(T.mapUrl)}>Get directions <span class="arr">↗</span></a><a class="btn" ${ext(T.website)}>mgit.ac.in <span class="arr">↗</span></a></div>
         <p style="margin-top:6px">${T.socials.length ? T.socials.map(s => `<a ${ext(s.url)}>${esc(s.name)}</a>`).join(" · ") : soon("Social handles coming soon")}</p></div></section>

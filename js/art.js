@@ -97,6 +97,8 @@
     scroll: '<path d="M18 12 h30 a6 6 0 0 1 0 12 h-4 v26 a6 6 0 0 1 -6 6 H16 a6 6 0 0 1 0 -12 h4 V18 a6 6 0 0 1 -2 -6"/><path d="M26 26 h12 M26 32 h12 M26 38 h8"/>',
     poster: '<rect x="14" y="10" width="36" height="28"/><path d="M20 30 l8 -10 l6 6 l4 -4 l6 8"/><circle cx="40" cy="18" r="3"/><path d="M20 38 L14 56 M44 38 L50 56 M32 38 v12"/>',
     quiz: '<path d="M32 6 L54 19 V45 L32 58 L10 45 V19 Z"/><path d="M25 25 a7 7 0 1 1 10 6 c-3 2 -3 3 -3 6"/><circle cx="32" cy="44" r="1.6" class="fillc"/>',
+    rope: '<path d="M4 34 C16 30 24 38 32 34 S48 30 60 34"/><path d="M32 26 v16"/><circle cx="12" cy="22" r="4"/><path d="M12 26 v10 l-4 10 M12 36 l4 10 M12 30 l6 3"/><circle cx="52" cy="22" r="4"/><path d="M52 26 v10 l4 10 M52 36 l-4 10 M52 30 l-6 3"/>',
+    clapper: '<path d="M10 26 H54 V54 H10 Z"/><path d="M10 26 L52 14 L54 20 L12 32"/><path d="M20 23 l6 -8 M32 20 l6 -8 M44 17 l6 -8"/><path d="M24 38 l12 6 l-12 6 Z"/>',
     connect: '<circle cx="22" cy="32" r="13"/><circle cx="42" cy="32" r="13"/><path d="M32 10 v6 M32 48 v6 M10 10 l5 5 M54 10 l-5 5"/>',
     music: '<path d="M24 46 V14 L50 8 V40"/><ellipse cx="18" cy="46" rx="6" ry="5"/><ellipse cx="44" cy="40" rx="6" ry="5"/><path d="M24 22 L50 16"/>'
   };
